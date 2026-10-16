@@ -1,0 +1,71 @@
+package org.user_api.Service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Service;
+import org.user_api.Model.User;
+import org.user_api.Repository.UserJpaRepository;
+import org.user_api.Utils.PasswordHasher;
+import org.user_api.Utils.SaltGenerator;
+import org.user_api.dto.UserDto;
+import org.user_api.exception.EmailNotExistException;
+import org.user_api.exception.PasswordInvalidException;
+
+import java.util.List;
+import java.util.Optional;
+
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+    private final UserJpaRepository userRepository ;
+
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+    public User getUser(Long id){
+        return userRepository.findById(id).orElseGet(null) ;
+    }
+
+    public User save(User user){
+        String salt = SaltGenerator.generateSalt() ;
+        user.setSalt(salt);
+        String hashedPassword = PasswordHasher.HashPassword(user.getPassword(),salt) ;
+        user.setPassword(hashedPassword);
+        return userRepository.save(user) ;
+    }
+
+    public HttpStatusCode delete( Long id){
+        userRepository.deleteById(id);
+        return HttpStatusCode.valueOf(200) ;
+    }
+
+    public User update( Long id , User user){
+        User existingUser = findById(id).get() ;
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPassword(user.getPassword());
+        existingUser.setPhone(user.getPhone());
+        return save(existingUser) ;
+    }
+
+    public Optional<User> findById(Long id){
+        return userRepository.findById(id) ;
+    }
+
+    public void deleteById(Long id){
+        userRepository.deleteById(id);
+    }
+
+    public User login(String email , String password){
+        User user = userRepository.findByEmail(email).orElseGet(null) ;
+        if(user.equals(null)){
+            throw new EmailNotExistException("email not found");
+        }
+        String HashedPassword = PasswordHasher.HashPassword(password,user.getSalt()) ;
+        if(HashedPassword.equals(user.getPassword())){
+            return user ;
+        }
+        else throw new PasswordInvalidException("password invalide !") ;
+    }
+}

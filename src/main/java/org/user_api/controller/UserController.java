@@ -1,47 +1,50 @@
 package org.user_api.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
 import org.user_api.Model.User;
 import org.user_api.Repository.UserJpaRepository;
+import org.user_api.Service.UserService;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/users")
 public class UserController {
 
-    private final UserJpaRepository userRepository ;
+    private final UserService userService ;
 
-    @GetMapping("/users")
+    @GetMapping
     public List<User> getUsers(){
-        return userRepository.findAll() ;
+        return userService.findAll() ;
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     public User getUser(@PathVariable("id") Long id){
-        return userRepository.findById(id).orElseGet(null) ;
+        return userService.findById(id).orElseGet(null) ;
     }
 
-    @PostMapping("users")
-    public User save(@RequestBody User user){
-        return userRepository.save(user) ;
+    @PostMapping
+    public User save(@Valid @RequestBody User user){
+        return userService.save(user) ;
     }
 
-    @DeleteMapping("users/{id}")
+    @DeleteMapping("/{id}")
     public HttpStatusCode delete(@PathVariable("id") Long id){
-         userRepository.deleteById(id);
-         return HttpStatusCode.valueOf(200) ;
+        userService.deleteById(id);
+        return HttpStatusCode.valueOf(200) ;
     }
 
-    @PutMapping("users/{id}")
+    @PutMapping("/{id}")
     public User update(@PathVariable("id") Long id , @RequestBody User user){
-        User existingUser = userRepository.findById(id).get() ;
+        User existingUser = userService.findById(id).get() ;
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
         existingUser.setPassword(user.getPassword());
         existingUser.setPhone(user.getPhone());
-        return userRepository.save(existingUser) ;
+        return userService.save(existingUser) ;
     }
 }

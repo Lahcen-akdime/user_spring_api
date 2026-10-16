@@ -2,6 +2,7 @@ package org.user_api.Model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,16 +17,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id ;
 
-    @Column(nullable = false)
+    @NotNull
     private String name ;
 
-    @Column(unique = true,nullable = false)
+    @Column(unique = true)
+    @NotNull
     private String email ;
 
-    @Column(nullable = false)
+    @NotNull
     private String password ;
 
-    @Column(nullable = false)
+    @NotNull
     private String phone ;
+
+    @NotNull
+    private String salt ;
 
 }
