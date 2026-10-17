@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User save(@Valid @RequestBody User user){
+    public User save(@RequestBody User user){
         return userService.save(user) ;
     }
 

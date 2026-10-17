@@ -3,9 +3,12 @@ package org.user_api.dto;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.user_api.Model.Role;
+import org.user_api.Model.User;
 
-@Data
+@Getter
 public class UserDto {
 
     private String name ;
@@ -14,6 +17,14 @@ public class UserDto {
 
     private String password ;
 
-    private String phone ;
+    private Role role ;
+
+    public UserDto(User user){
+        name = user.getName();
+        email = user.getEmail() ;
+        password = user.getPassword() ;
+        role = user.getRole() ;
+    }
+
 
 }

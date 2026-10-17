@@ -1,5 +1,8 @@
 package org.user_api.Service;
 
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -14,21 +17,24 @@ import org.user_api.exception.PasswordInvalidException;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Service
 public class UserService {
 
     private final UserJpaRepository userRepository ;
+    private final SaltGenerator saltGenerator ;
 
     public List<User> findAll() {
         return userRepository.findAll();
     }
-    public User getUser(Long id){
-        return userRepository.findById(id).orElseGet(null) ;
+
+    public UserDto getUser(Long id){
+        User user = userRepository.findById(id).orElseGet(null) ;
+        return new UserDto(user);
     }
 
     public User save(User user){
-        String salt = SaltGenerator.generateSalt() ;
+        String salt = saltGenerator.generateSalt() ;
         user.setSalt(salt);
         String hashedPassword = PasswordHasher.HashPassword(user.getPassword(),salt) ;
         user.setPassword(hashedPassword);
