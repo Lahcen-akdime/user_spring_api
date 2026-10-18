@@ -11,6 +11,7 @@ import org.user_api.Repository.UserJpaRepository;
 import org.user_api.Utils.PasswordHasher;
 import org.user_api.Utils.SaltGenerator;
 import org.user_api.dto.UserDto;
+import org.user_api.exception.EmailAlreadyExistException;
 import org.user_api.exception.EmailNotExistException;
 import org.user_api.exception.PasswordInvalidException;
 
@@ -29,11 +30,15 @@ public class UserService {
     }
 
     public UserDto getUser(Long id){
-        User user = userRepository.findById(id).orElseGet(null) ;
+        User user = userRepository.findById(id).orElseThrow() ;
         return new UserDto(user);
     }
 
+
     public User save(User user){
+        if(existsByEmail(user.getEmail())){
+            throw new EmailAlreadyExistException("This email "+user.getEmail()+" is already exist") ;
+        }
         String salt = saltGenerator.generateSalt() ;
         user.setSalt(salt);
         String hashedPassword = PasswordHasher.HashPassword(user.getPassword(),salt) ;
@@ -41,18 +46,13 @@ public class UserService {
         return userRepository.save(user) ;
     }
 
-    public HttpStatusCode delete( Long id){
-        userRepository.deleteById(id);
-        return HttpStatusCode.valueOf(200) ;
-    }
-
-    public User update( Long id , User user){
-        User existingUser = findById(id).get() ;
+    public UserDto update(User user){
+        User existingUser = findById(user.getId()).get() ;
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
         existingUser.setPassword(user.getPassword());
         existingUser.setPhone(user.getPhone());
-        return save(existingUser) ;
+        return new UserDto(userRepository.updateUser(user)) ;
     }
 
     public Optional<User> findById(Long id){
@@ -64,14 +64,16 @@ public class UserService {
     }
 
     public User login(String email , String password){
-        User user = userRepository.findByEmail(email).orElseGet(null) ;
-        if(user.equals(null)){
-            throw new EmailNotExistException("email not found");
-        }
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new EmailNotExistException("email not found"));
         String HashedPassword = PasswordHasher.HashPassword(password,user.getSalt()) ;
         if(HashedPassword.equals(user.getPassword())){
             return user ;
         }
         else throw new PasswordInvalidException("password invalide !") ;
     }
+
+    public Boolean existsByEmail(String email){
+        return userRepository.existsByEmail(email) ;
+    }
+
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.user_api.Model.User;
 import org.user_api.Service.UserService;
+import org.user_api.dto.UserDto;
 import org.user_api.exception.ExceptionPage;
 
 @RestController
@@ -19,12 +20,13 @@ public class AuthController {
     private final UserService userService ;
 
     @PostMapping("/login")
-    public User login(HttpServletRequest request){
+    public UserDto login(HttpServletRequest request){
         try {
             HttpSession session = request.getSession();
             String email = request.getParameter("email") ;
             session.setAttribute("email",email);
-            return userService.login(email, request.getParameter("password")) ;
+            User user = userService.login(email, request.getParameter("password")) ;
+            return new UserDto(user) ;
         } catch (RuntimeException e) {
             throw new ExceptionPage(e.getMessage());
         }
